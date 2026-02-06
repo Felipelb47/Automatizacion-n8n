@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Agenda Local IA</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 1rem;
+        background: #f0f2f5;
+      }
+      .chat-box {
+        height: 400px;
+        overflow-y: scroll;
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .mensaje {
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 80%;
+      }
+      .bot {
+        background: #e4e6eb;
+        align-self: flex-start;
+      }
+      .user {
+        background: #0084ff;
+        color: white;
+        align-self: flex-end;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      button {
+        padding: 10px 20px;
+        background: #0084ff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Mi Agenda IA</h2>
+    <div class="chat-box" id="cajaChat">
+      <div class="mensaje bot">Hola, ¿qué quieres agendar?</div>
+    </div>
+    <div class="controls">
+      <input
+        type="text"
+        id="inputUsuario"
+        placeholder="Ej: Dentista mañana..."
+      />
+      <button onclick="enviar()">Enviar</button>
+    </div>
+
+    <script>
+      const urlN8N = "http://localhost:5678/webhook/chat"; 
+
+      const sessionId = "sesion_" + Math.random().toString(36).substr(2, 9);
+
+      async function enviar() {
+        const input = document.getElementById("inputUsuario");
+        const texto = input.value;
+        if (!texto) return;
+
+        mostrarMensaje(texto, "user");
+        input.value = "";
+
+        try {
+          const respuesta = await fetch(urlN8N, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chatInput: texto,
+              sessionId: sessionId,
+            }),
+          });
+
+          const data = await respuesta.json();
+          mostrarMensaje(data.respuesta || data.output || JSON.stringify(data), "bot");
+        } catch (error) {
+          console.error(error);
+          mostrarMensaje(
+            "Error: Revisa que n8n esté ejecutándose y la URL sea correcta.",
+            "bot"
+          );
+        }
+      }
+
+      function mostrarMensaje(texto, remitente) {
+        const caja = document.getElementById("cajaChat");
+        const div = document.createElement("div");
+        div.className = `mensaje ${remitente}`;
+        div.textContent = texto;
+        caja.appendChild(div);
+        caja.scrollTop = caja.scrollHeight;
+      }
+    </script>
+  </body>
+</html>

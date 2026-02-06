@@ -1,0 +1,213 @@
+{
+  "name": "guardar_evento_3",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "titulo"
+            },
+            {
+              "name": "fecha"
+            },
+            {
+              "name": "hora"
+            },
+            {
+              "name": "minutos_aviso",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "2cfd1b52-57ea-41fe-8780-96ee43df2c48",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -640,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "eventos",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "titulo",
+              "fieldValue": "={{ $('When Executed by Another Workflow').item.json.titulo }}"
+            },
+            {
+              "fieldId": "fecha",
+              "fieldValue": "={{ $('When Executed by Another Workflow').item.json.fecha }}"
+            },
+            {
+              "fieldId": "hora",
+              "fieldValue": "={{ $('When Executed by Another Workflow').item.json.hora }}"
+            },
+            {
+              "fieldId": "minutos_aviso",
+              "fieldValue": "={{ $('When Executed by Another Workflow').item.json.minutos_aviso }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        16,
+        208
+      ],
+      "id": "e092e16d-eb96-464a-bbe7-025df4f103ac",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "3Og4kjavxYNq5Wcz",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "eventos",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "fecha",
+              "condition": "eq",
+              "keyValue": "={{ $json.fecha }}"
+            },
+            {
+              "keyName": "hora",
+              "condition": "eq",
+              "keyValue": "={{ $json.hora }}%"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        128
+      ],
+      "id": "e8db0d87-d89f-485d-a40c-0385f435b926",
+      "name": "Get many rows",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "3Og4kjavxYNq5Wcz",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "460ea314-5f6b-4fec-ade1-1bd43292763d",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        128
+      ],
+      "id": "cfd84526-5023-4a1d-90c2-72bed2627b62",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"estado\": \"conflicto\",\n  \"mensaje\": \"Ya existe un evento llamado '{{ $('Get many rows').item.json.titulo }}' asignado a esa fecha y hora.\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "84ea0c4c-d02b-4c74-b436-a8a3f81d7b91",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "21673dd4-c2dd-4bc7-8ad2-2c539c1b187e",
+  "meta": {
+    "instanceId": "0629f7d7b813d14d017157b963b2760332e9a7f78651219b2d164ab06e9540f0"
+  },
+  "id": "nTagxPBIWG2306DGSAr7I",
+  "tags": []
+}

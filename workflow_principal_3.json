@@ -1,0 +1,231 @@
+{
+  "name": "workflow_principal_3",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        -416
+      ],
+      "id": "f97a4cd2-459b-4362-92de-5cddfbcea7c5",
+      "name": "Webhook",
+      "webhookId": "cc4f87c5-10ee-4959-bf9f-ce3226c72eee"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}\n\nEres un asistente de agenda eficiente y amable.\n\n1. CONTEXTO DE FECHA (IMPORTANTE):\n   - Hoy es exactamente: {{ $now.format('yyyy-MM-dd') }}\n   - Tienes PROHIBIDO preguntar al usuario qué día es hoy. Ya lo sabes.\n   - Usa esta fecha para calcular automáticamente términos como \"mañana\" (sumar 1 día), \"el viernes que viene\", \"pasado mañana\", etc.\n\n2. TU MISIÓN:\n   - Analiza el texto del usuario y extrae los datos para llamar a la herramienta 'guardar_evento':\n     * 'titulo': Qué va a hacer.\n     * 'fecha': Cuándo (formato YYYY-MM-DD).\n     * 'hora': A qué hora (formato HH:MM).\n     * 'minutos_aviso': (OPCIONAL) El tiempo de antelación para el recordatorio EN MINUTOS.\n\n3. REGLAS PARA RECORDATORIOS:\n   - Si el usuario pide recordatorio/aviso, CONVIERTE el tiempo a MINUTOS (Int).\n     * Ej: \"Avísame 1 hora antes\" -> minutos_aviso: 60\n     * Ej: \"Recordatorio 15 min antes\" -> minutos_aviso: 15\n     * Ej: \"Avísame 1 día antes\" -> minutos_aviso: 1440\n   - Si el usuario NO menciona ningún recordatorio, envía 'null' o déjalo vacío en este campo.\n\n4. REGLAS DE COMPORTAMIENTO:\n   - Si el usuario te da toda la información (ej: \"Cena mañana a las 9 con aviso 30 min antes\"), extrae los datos TÚ MISMO y llama a la herramienta 'guardar_evento' de inmediato. No preguntes lo que ya te han dicho.\n   - Si falta algún dato OBLIGATORIO (titulo, fecha, hora), pregunta SOLO por el dato que falta. (El recordatorio NO es obligatorio).\n   - HABLA NATURAL: No uses asteriscos, negritas ni listas para repetir los datos.\n\n5. GESTIÓN DE CONFLICTOS Y RESPUESTA FINAL (CRUCIAL):\n   - Cuando uses la herramienta 'guardar_evento', **ANALIZA LO QUE TE RESPONDE LA HERRAMIENTA**:\n     * CASO A (Éxito): Si la herramienta confirma que se guardó, di simplemente: \"Listo, agendado para el [fecha] a las [hora] (con recordatorio activado si aplica).\"\n     * CASO B (Conflicto): Si la herramienta te devuelve un error o dice que hay un \"conflicto\", **NO digas que se ha guardado**. Informa al usuario: \"Vaya, parece que ya tienes el evento '[Nombre del evento]' a esa hora.\" y pregunta si busca otra hora.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        -416
+      ],
+      "id": "9231a045-6058-4d78-8a4a-2f93470cf0d7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.sessionId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        -144
+      ],
+      "id": "977c64e6-b630-48a0-ba73-29f60fe42b9e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ respuesta: $json.output }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        400,
+        -416
+      ],
+      "id": "1a39d65c-ee69-495d-9e46-dbfad5c6bafc",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "description": "Los 3 argumentos tienen que rellenarse por completo antes de guardar el evento, pero es importante que esos argumentos los puedes sacar del mismo texto que recibes",
+        "workflowId": {
+          "__rl": true,
+          "value": "nTagxPBIWG2306DGSAr7I",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/nTagxPBIWG2306DGSAr7I",
+          "cachedResultName": "guardar_evento_3"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "titulo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('titulo', ``, 'string') }}",
+            "fecha": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fecha', ``, 'string') }}",
+            "hora": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('hora', ``, 'string') }}",
+            "minutos_aviso": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('minutos_aviso', ``, 'number') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "titulo",
+              "displayName": "titulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "hora",
+              "displayName": "hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "minutos_aviso",
+              "displayName": "minutos_aviso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        -160
+      ],
+      "id": "3a81a83b-cc02-43ca-abc0-48820f617b64",
+      "name": "guardar_evento"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -208
+      ],
+      "id": "575dc412-c152-4c2d-bc18-5deda304849f",
+      "name": "Google Gemini Chat Model",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dAT2yIMkB6PKVpU1",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "guardar_evento": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "712efa28-59a1-4d7d-920b-97636a1017fb",
+  "meta": {
+    "instanceId": "0629f7d7b813d14d017157b963b2760332e9a7f78651219b2d164ab06e9540f0"
+  },
+  "id": "pzKc6AzcU4_S_476oeiGA",
+  "tags": []
+}
